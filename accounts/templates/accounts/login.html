@@ -1,22 +1,40 @@
-{%block content%}
-  <div class="center">
-  <h1>Login view</h1>
-	  <form method="post" class="card" novalidate>
-	  	{% csrf_token %}
-	    <h2 class="text-center">Log in to your account</h2>
-		{% for field in form %}
-	    		{{ field.label_tag }}
-	        	{{ field }}
-	        	{% if field.errors %}
-	        		<small>{{ field.errors|striptags }}</small>
-	        	{% endif %}
-		{% endfor %}
+{% block content %}
+    <head>
+    <title>DCA</title>
+    <!-- Add Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="min-h-screen flex items-center justify-center">
+        <div class="w-full max-w-md">
+            <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" novalidate>
+                {% csrf_token %}
+                <h1 class="text-2xl font-semibold mb-6 text-center">Login to Your Account</h1>
 
-		<input type="submit" value="Login" class="btn btn-primary full-width">
-		<hr>
-		<p class="text-center">Forgot your password <a href="#">Reset Password</a></p>
-		<p class="text-center">Don't have a account? <a href="#">Join Now</a></p>
-	</form>
-</div>
+                {% for field in form %}
+                    <div class="mb-4">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                            <p class="text-red-500 text-xs italic">{{ field.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
 
-{%endblock content%}
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full w-full">
+                    Login
+                </button>
+
+                <hr class="my-6">
+
+                <p class="text-center text-gray-600">
+                    Forgot your password? <a href="#" class="text-blue-500 hover:underline">Reset Password</a>
+                </p>
+                <p class="text-center text-gray-600">
+                    Don't have an account? <a href="#" class="text-blue-500 hover:underline">Join Now</a>
+                </p>
+            </form>
+        </div>
+        </div>
+    </body>
+{% endblock content %}

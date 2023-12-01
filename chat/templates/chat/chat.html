@@ -1,3 +1,4 @@
+{% extends 'core/core.html' %}
 {% block content %}
     {% for chat in chats %}
         <a href={% url 'start-chat-view' chat.id %}>{{ chat.id }}</a>

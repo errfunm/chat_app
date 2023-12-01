@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DCA</title>
+    <!-- Add Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-200">
+    <header class="bg-blue-500 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="font-bold text-xl">DCA</h1>
+            {% if user.is_authenticated %}
+                <div class="flex items-center">
+                    <p class="text-sm">{{ user.username }}</p>
+                    <!--<img class="h-8 w-8 rounded-full mr-4" src="{{ user.profile_picture_url }}" alt="User Profile Picture">-->
+                    <a class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" href="{% url 'logout-view' %}">Logout</a>
+                </div>
+            {% else %}
+                <a class="bg-blue-700 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded" href="{% url 'login-view' %}">Login</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="container mx-auto mt-4 bg-white p-4 rounded shadow">
+        {% block content %}
+        <!-- This is where your other templates will go -->
+        {% endblock %}
+    </main>
+</body>
+</html>
+
