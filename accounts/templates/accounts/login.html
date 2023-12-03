@@ -13,7 +13,7 @@
 
                 {% for field in form %}
                     <div class="mb-4">
-                        {{ field.label_tag }}
+                        {{ field.label }}
                         {{ field }}
                         {% if field.errors %}
                             <p class="text-red-500 text-xs italic">{{ field.errors|striptags }}</p>
@@ -28,10 +28,10 @@
                 <hr class="my-6">
 
                 <p class="text-center text-gray-600">
-                    Forgot your password? <a href="#" class="text-blue-500 hover:underline">Reset Password</a>
+                    Forgot your password? <a href="{% url 'password_reset' %}" class="text-blue-500 hover:underline">Reset Password</a>
                 </p>
                 <p class="text-center text-gray-600">
-                    Don't have an account? <a href="#" class="text-blue-500 hover:underline">Join Now</a>
+                    Don't have an account? <a href="{% url 'register-user' %}" class="text-blue-500 hover:underline">Join Now</a>
                 </p>
             </form>
         </div>

@@ -1,2 +1,8 @@
-from django.forms import ModelForm
-from django.contrib.auth.forms import log
+from django.contrib.auth.forms import BaseUserCreationForm
+from accounts.models import User
+
+
+class RegisterUserForm(BaseUserCreationForm):
+    class Meta:
+        model = User
+        fields = BaseUserCreationForm.Meta.fields
