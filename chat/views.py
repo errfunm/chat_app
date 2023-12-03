@@ -23,13 +23,10 @@ def message_view(request, pk):
         form = TextMessageForm(request.POST)
 
         if form.is_valid():
-            print("Form is valid!")
             message = form.save(commit=False)
-            print("Form not saved yet!")
             message.sender = user
             message.conversation = conversation
             message.save()
-            print("Form saved!")
             return redirect('start-chat-view', pk=pk)
     else:
         form = TextMessageForm()
