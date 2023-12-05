@@ -12,7 +12,7 @@ def chat_room_view(request):
     return render(request, 'chat/chat.html', context=context, )
 
 
-@login_required()
+"""@login_required()
 def message_view(request, pk):
 
     conversation = PrivateChat.objects.get(id=pk)
@@ -32,5 +32,12 @@ def message_view(request, pk):
         form = TextMessageForm()
 
     context = {"messages": messages, "form": form}
-    return render(request, "chat/messages.html", context)
+    return render(request, "chat/messages.html", context)"""
 
+
+@login_required()
+def message_view(request, pk):
+    form = TextMessageForm()
+    conversation = PrivateChat.objects.get(id=pk)
+    messages = TextMessage.objects.filter(conversation=conversation)
+    return render(request, 'chat/messages.html', context={"id": pk, "form": form, "messages": messages})

@@ -31,6 +31,8 @@ AUTH_USER_MODEL = 'accounts.user'
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     'chat',
     'core'
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -129,3 +132,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Email
 EMAIL_PORT = 8025
 
+
+# Channels
+ASGI_APPLICATION = "chat_app.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
