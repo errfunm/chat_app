@@ -1,6 +1,9 @@
 {% extends 'core/core.html' %}
 {% block content %}
     <body>
+    <button class="block bg-indigo-400  float-right rounded p-2 font-sans text-white"><a href="{% url 'clear-history' id %}" >Clear history</a></button>
+
+
         <div>
 
             <div>
@@ -11,13 +14,16 @@
                 </ul>
             </div>
 
+
             <div>
                 <form method="post" action="">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <input id="chat-message-submit" type="button" value="Send">
+                    <button id="chat-message-submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Send</button>
+
                 </form>
             </div>
+
         </div>
 
         {{ id|json_script:"room-id" }}

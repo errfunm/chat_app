@@ -25,7 +25,8 @@ class ChatConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
         conversation = PrivateChat.objects.get(id=self.room_id)
-        TextMessage.objects.create(text_content=message, conversation=conversation, sender=self.user)
+        TextMessage.objects.create(text_content=message, conversation=conversation,
+                                   sender=self.user, content_type='txt')
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, {"type": "chat.message", "message": message, 'sender': self.user.username}
         )
