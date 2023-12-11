@@ -1,74 +1,144 @@
 {% extends 'core/core.html' %}
+
 {% block content %}
     <body>
-    <button class="block bg-indigo-400  float-right rounded p-2 font-sans text-white"><a href="{% url 'clear-history' id %}" >Clear history</a></button>
-
 
         <div>
+            <div>
+                <button class="block bg-indigo-400 float-right rounded p-2 font-sans text-white">
+                    <a href="{% url 'clear-history' id %}">Clear history</a>
+                </button>
+            </div>
 
             <div>
                 <ul id="chat-log">
                     {% for message in messages %}
-                        <li>{{ message.sender }}: {{ message.text_content }}</li>
+                        {% if message.content_type == 'img' %}
+                            <li>{{ message.sender }}:<img src="{{ message.content.url }}" alt="default_alt" height="500px" width="300px"></li>
+                        {% else %}
+                            <li>{{ message.sender }}: {{ message.content }}</li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </div>
 
-
             <div>
-                <form method="post" action="">
+                <form method="post" enctype="multipart/form-data" action="">
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    <button id="chat-message-submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Send</button>
+
+                    <div>
+                        {{ form.txt_msg.errors }}
+                        {{ form.txt_msg }}
+                    </div>
+
+                    <div>
+                        {{ form.img_msg.label }}
+                        {{ form.img_msg.errors }}
+                        {{ form.img_msg }}
+                    </div>
+
+                    <select id="message-type" name="message_type">
+                        <option value="" disabled selected>Choose</option>
+                        <option value="text">Text</option>
+                        <option value="image">Image</option>
+                    </select>
+
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="chat-message-submit">Send</button>
 
                 </form>
             </div>
-
         </div>
 
         {{ id|json_script:"room-id" }}
         <script>
-            const roomId = JSON.parse(document.getElementById('room-id').textContent);
-            const chatLog = document.getElementById('chat-log');
 
-            const chatSocket = new WebSocket(
-                'ws://'
-                + window.location.host
-                + '/ws/chat/'
-                + roomId
-                + '/'
-            );
+            document.addEventListener("DOMContentLoaded", function () {
+                    const roomId = JSON.parse(document.getElementById('room-id').textContent);
+                    const chatLog = document.getElementById('chat-log');
+                    const chatSocket = new WebSocket(
+                        `ws://${window.location.host}/ws/chat/${roomId}/`
+                    );
 
-            chatSocket.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                const newMessage = document.createElement('li');
-                newMessage.textContent = `${data.sender}: ${data.message}`;
-                chatLog.appendChild(newMessage);
-            };
+                    chatSocket.onmessage = function (e) {
+                        const data = JSON.parse(e.data);
 
-            chatSocket.onclose = function(e) {
-                console.error('Chat socket closed unexpectedly');
-            };
+                        const newMessage = document.createElement('li');
 
-            document.querySelector('#id_text_content').focus();
-            document.querySelector('#id_text_content').onkeyup = function(e) {
-                if (e.key === 'Enter') {  // enter, return
-                    document.querySelector('#chat-message-submit').click();
-                }
-            };
+                        if (data.content_type === 'text') {
+                            newMessage.textContent = `${data.sender}: ${data.message}`;
+                        } else if (data.content_type === 'image') {
+                            const imgElement = document.createElement('img');
+                            imgElement.src = data.message;
+                            imgElement.height = 500;
+                            imgElement.width = 300;
+                            newMessage.textContent = `${data.sender}:`;
+                            newMessage.appendChild(imgElement);
+                        }
 
-            document.querySelector('#chat-message-submit').onclick = function(e) {
-                const messageInputDom = document.querySelector('#id_text_content');
-                const message = messageInputDom.value;
+                        chatLog.appendChild(newMessage);
+                    };
 
-                chatSocket.send(JSON.stringify({
-                    'message': message,
-                }));
-                messageInputDom.value = '';
-            };
+                    chatSocket.onclose = function (e) {
+                        console.error('Chat socket closed unexpectedly');
+                    };
+
+                    const textForm = document.querySelector("#id_txt_msg");
+                    const imageForm = document.querySelector("#id_img_msg");
+                    const messageTypeSelect = document.querySelector("#message-type");
+
+                    messageTypeSelect.addEventListener("change", function () {
+                        if (messageTypeSelect.value === "text") {
+                            textForm.removeAttribute("disabled");
+                            imageForm.setAttribute("disabled", "disabled");
+                        } else if (messageTypeSelect.value === "image") {
+                            textForm.setAttribute("disabled", "disabled");
+                            imageForm.removeAttribute("disabled");
+                        }
+                    });
+
+                    document.querySelector('#id_txt_msg').focus();
+
+                    document.querySelector('#id_txt_msg').onkeyup = function (e) {
+                        if (e.key === 'Enter') {
+                            document.querySelector('#chat-message-submit').click();
+                        }
+                    };
+
+                    document.querySelector('#chat-message-submit').onclick = function (e) {
+                        e.preventDefault();
+                        const messageTypeSelect = document.querySelector("#message-type");
+                        const messageInputDom = document.querySelector('#id_txt_msg');
+                        const imageInputDom = document.querySelector('#id_img_msg');
+
+                        const messageType = messageTypeSelect.value;
+
+                        if (messageType === "text") {
+                            const message = messageInputDom.value;
+                            chatSocket.send(JSON.stringify({
+                                'message_type': messageType,
+                                'message': message,
+                            }));
+                            messageInputDom.value = '';
+                        } else if (messageType === "image") {
+                            const fileInput = imageInputDom.files[0];
+
+                            const reader = new FileReader();
+                            reader.onloadend = function () {
+                                const imageData = reader.result.split(",")[1];
+                                chatSocket.send(JSON.stringify({
+                                    'message_type': messageType,
+                                    'image_data': imageData,
+                                }));
+                            };
+
+                            if (fileInput) {
+                                reader.readAsDataURL(fileInput);
+                            }
+                        }
+                    };
+                });
+
         </script>
+
     </body>
 {% endblock content %}
-
-
-

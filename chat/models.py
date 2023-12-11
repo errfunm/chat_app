@@ -46,7 +46,7 @@ class MessageVisibility(models.Model):
 
 
 class TextMessage(Message):
-    text_content = models.TextField()
+    content = models.TextField()
     content_type = 'txt'
 
     def save(self, *args, **kwargs):
@@ -56,3 +56,16 @@ class TextMessage(Message):
                 MessageVisibility.objects.create(user=user, message=self)
 
         super(TextMessage, self).save()
+
+
+class ImageMessage(Message):
+    content_type = 'img'
+    content = models.ImageField(upload_to='images/')
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            super(ImageMessage, self).save()
+            for user in self.conversation.users.all():
+                MessageVisibility.objects.create(user=user, message=self)
+
+        super(ImageMessage, self).save()

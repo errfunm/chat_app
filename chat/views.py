@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import TextMessageForm
-from .models import PrivateChat, TextMessage, MessageVisibility
+from .forms import MessageForm
+from .models import PrivateChat, Message, TextMessage, ImageMessage, MessageVisibility
 
 
 @login_required()
@@ -13,13 +13,20 @@ def chat_room_view(request):
 
 @login_required()
 def message_view(request, pk):
-    form = TextMessageForm()
+    form = MessageForm()
     conversation = PrivateChat.objects.get(id=pk)
-    all_messages = TextMessage.objects.filter(conversation=conversation,)
+    all_messages = Message.objects.filter(conversation=conversation,)
     visible_messages = []
     for message in all_messages:
         if MessageVisibility.objects.filter(message=message, user=request.user, is_visible=True):
-            visible_messages.append(message)
+            if message.content_type == 'txt':
+                message = TextMessage.objects.get(id=message.id)
+                visible_messages.append(message)
+            if message.content_type == 'img':
+                message = ImageMessage.objects.get(id=message.id)
+                visible_messages.append(message)
+            if message.content_type == 'file':
+                pass
 
     return render(request, 'chat/messages.html', context={"id": pk, "form": form, "messages": visible_messages})
 
@@ -28,7 +35,7 @@ def message_view(request, pk):
 def clear_history(request, pk):
     user = request.user
     conversation = PrivateChat.objects.get(id=pk)
-    all_messages = TextMessage.objects.filter(conversation=conversation,)
+    all_messages = Message.objects.filter(conversation=conversation,)
     print(all_messages)
     for message in all_messages:
         try:

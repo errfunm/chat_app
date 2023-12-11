@@ -1,9 +1,11 @@
 import json
-
-
+import base64
+from django.core.files.base import ContentFile
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-from .models import TextMessage, PrivateChat
+from django.core.serializers import serialize
+from .models import TextMessage, ImageMessage, PrivateChat
+
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -22,22 +24,41 @@ class ChatConsumer(WebsocketConsumer):
         )
 
     def receive(self, text_data):
+
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        message_type = text_data_json["message_type"]
         conversation = PrivateChat.objects.get(id=self.room_id)
-        TextMessage.objects.create(text_content=message, conversation=conversation,
-                                   sender=self.user, content_type='txt')
+        message = None
+        if message_type == 'text':
+            message = text_data_json["message"]
+            TextMessage.objects.create(content=message, conversation=conversation,
+                                       sender=self.user, content_type='txt')
+        elif message_type == 'image':
+            image_data = text_data_json["image_data"]
+            image_content = base64.b64decode(image_data)
+            img_msg = ImageMessage(conversation=conversation, sender=self.user, content_type='img')
+            img_msg.content.save('uploaded_img.jpg', ContentFile(image_content))
+            message = self.serialize_image(img_msg)
         async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {"type": "chat.message", "message": message, 'sender': self.user.username}
+            self.room_group_name, {"type": "chat.message", "message": message, 'sender': self.user.username,
+                                   'message_type': message_type}
         )
-        # self.send(text_data=json.dumps({"message": message}))
 
     # Receive message from room group
     def chat_message(self, event):
         message = event["message"]
         sender = event["sender"]
+        content_type = event["message_type"]
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             "message": message,
-            "sender": sender
+            "sender": sender,
+            "content_type": content_type
         }))
+
+    def serialize_image(self, image_instance):
+        serialized_data = serialize('json', [image_instance])
+        deserialized_data = json.loads(serialized_data)
+        serialized_image_data = '/' + deserialized_data[0]['fields']["content"]
+
+        return serialized_image_data
