@@ -1,6 +1,11 @@
 {% extends 'core/core.html' %}
+{% load custom_filters %}
 {% block content %}
-    {% for chat in chats %}
-        <a href={% url 'chat-room-view' chat.id %}>{{ chat.id }}</a>
+    {% for chat in chats%}
+        {% if chat.is_private %}
+            <a href="{% url 'chat-room-view' chat.id %}">{{ chat|get_other_user:current_user }}</a>
+        {% else %}
+            <a href="{% url 'chat-room-view' chat.id %}">{{ chat.name }}</a>
+        {% endif %}
     {% endfor %}
 {% endblock content %}

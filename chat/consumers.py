@@ -4,7 +4,7 @@ from django.core.files.base import ContentFile
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.core.serializers import serialize
-from .models import TextMessage, ImageMessage, PrivateChat
+from .models import TextMessage, ImageMessage, Participants
 
 
 class ChatConsumer(WebsocketConsumer):
@@ -27,7 +27,7 @@ class ChatConsumer(WebsocketConsumer):
 
         text_data_json = json.loads(text_data)
         message_type = text_data_json["message_type"]
-        conversation = PrivateChat.objects.get(id=self.room_id)
+        conversation = Participants.objects.get(id=self.room_id)
         message = None
         if message_type == 'text':
             message = text_data_json["message"]
@@ -36,7 +36,7 @@ class ChatConsumer(WebsocketConsumer):
         elif message_type == 'image':
             image_data = text_data_json["image_data"]
             image_content = base64.b64decode(image_data)
-            img_msg = ImageMessage(conversation=conversation, sender=self.user, content_type='img')
+            img_msg = ImageMessage(conversation=conversation, sender=self.user,)
             img_msg.content.save('uploaded_img.jpg', ContentFile(image_content))
             message = self.serialize_image(img_msg)
         async_to_sync(self.channel_layer.group_send)(

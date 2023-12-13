@@ -1,20 +1,30 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import MessageForm
-from .models import PrivateChat, Message, TextMessage, ImageMessage, MessageVisibility
+from .models import Participants, PrivateChat, GroupChat, Message, TextMessage, ImageMessage, MessageVisibility
 
 
 @login_required()
-def chat_room_view(request):
-    chats = PrivateChat.objects.filter(users__username__contains=request.user.username)
-    context = {"chats": chats}
+def chat_list(request):
+    current_user = request.user
+    chats = Participants.objects.filter(users__username__contains=request.user.username)
+    pv_chats = []
+    group_chats = []
+    for chat in chats:
+        if chat.is_private:
+            pv_chats.append(PrivateChat.objects.get(id=chat.id))
+        else:
+            group_chats.append(GroupChat.objects.get(id=chat.id))
+
+        chats = pv_chats + group_chats
+    context = {"chats": chats, "current_user": current_user}
     return render(request, 'chat/chat.html', context=context, )
 
 
 @login_required()
-def message_view(request, pk):
+def chat_room_view(request, pk):
     form = MessageForm()
-    conversation = PrivateChat.objects.get(id=pk)
+    conversation = Participants.objects.get(id=pk)
     all_messages = Message.objects.filter(conversation=conversation,)
     visible_messages = []
     for message in all_messages:

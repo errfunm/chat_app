@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.admin import ModelAdmin
 from .models import *
 
 
@@ -13,3 +12,4 @@ admin.site.register(Message)
 admin.site.register(TextMessage)
 admin.site.register(ImageMessage)
 admin.site.register(MessageVisibility)
+admin.site.register(GroupChat)

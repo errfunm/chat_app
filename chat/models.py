@@ -7,12 +7,20 @@ class Participants(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     is_private = models.BooleanField(default=True)
 
+    def get_other_user(self, current_user):
+        return self.users.exclude(id=current_user.id).first().username
+
     class Meta:
         verbose_name_plural = "Participants"
 
 
 class PrivateChat(Participants):
     pass
+
+
+class GroupChat(Participants):
+    name = models.CharField(max_length=100)
+    is_private = False
 
 
 class Message(models.Model):
@@ -23,7 +31,7 @@ class Message(models.Model):
     ]
 
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    conversation = models.ForeignKey(PrivateChat, on_delete=models.CASCADE, related_name='messages')
+    conversation = models.ForeignKey(Participants, on_delete=models.CASCADE, related_name='messages')
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     content_type = models.CharField(
@@ -34,15 +42,6 @@ class Message(models.Model):
     def clear_for_user(self, user):
         # Mark the message as not visible for the specified user
         MessageVisibility.objects.filter(message=self, user=user, is_visible=True).update(is_visible=False)
-
-
-class MessageVisibility(models.Model):
-    message = models.ForeignKey(Message, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    is_visible = models.BooleanField(default=True)
-
-    class Meta:
-        unique_together = ['message', 'user']
 
 
 class TextMessage(Message):
@@ -69,3 +68,14 @@ class ImageMessage(Message):
                 MessageVisibility.objects.create(user=user, message=self)
 
         super(ImageMessage, self).save()
+
+
+class MessageVisibility(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_visible = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['message', 'user']
+
+
