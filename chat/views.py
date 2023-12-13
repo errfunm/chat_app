@@ -44,7 +44,7 @@ def chat_room_view(request, pk):
 @login_required()
 def clear_history(request, pk):
     user = request.user
-    conversation = PrivateChat.objects.get(id=pk)
+    conversation = Participants.objects.get(id=pk)
     all_messages = Message.objects.filter(conversation=conversation,)
     print(all_messages)
     for message in all_messages:
