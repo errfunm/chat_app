@@ -10,6 +10,12 @@ class Participants(models.Model):
     def get_other_user(self, current_user):
         return self.users.exclude(id=current_user.id).first().username
 
+    def __str__(self):
+        if self.is_private:
+            return f"private_chat, {self.pk}"
+        else:
+            return f"group_chat, {self.pk}"
+
     class Meta:
         verbose_name_plural = "Participants"
 
@@ -21,6 +27,9 @@ class PrivateChat(Participants):
 class GroupChat(Participants):
     name = models.CharField(max_length=100)
     is_private = False
+
+    def __str__(self):
+        return self.name
 
 
 class Message(models.Model):
@@ -39,6 +48,12 @@ class Message(models.Model):
         max_length=5
     )
 
+    def __str__(self):
+        if self.content_type == 'txt':
+            return f"{self.sender} to {self.conversation.id} - text message"
+        else:
+            return f"{self.sender} to {self.conversation.id} - file message"
+
     def clear_for_user(self, user):
         # Mark the message as not visible for the specified user
         MessageVisibility.objects.filter(message=self, user=user, is_visible=True).update(is_visible=False)
@@ -47,6 +62,17 @@ class Message(models.Model):
 class TextMessage(Message):
     content = models.TextField()
     content_type = 'txt'
+
+    def __str__(self):
+
+        return f"{self.sender} to {self.conversation.id} - {self.content_cutter()}"
+
+    def content_cutter(self):
+        string = self.content
+        if len(string) > 5:
+            return f"'{string[:5]} ...'"
+        else:
+            return f"'{string[:5]}'"
 
     def save(self, *args, **kwargs):
         if self.pk is None:
@@ -74,6 +100,11 @@ class MessageVisibility(models.Model):
     message = models.ForeignKey(Message, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_visible = models.BooleanField(default=True)
+
+    def __str__(self):
+        visibility_status = "Visible" if self.is_visible == True else "Not visible"
+
+        return f"Message: {self.message}, User: {self.user}, Status: {visibility_status}"
 
     class Meta:
         unique_together = ['message', 'user']
