@@ -5,7 +5,7 @@ from accounts.models import User
 class Participants(models.Model):
     users = models.ManyToManyField(User, related_name='chats')
     date_created = models.DateTimeField(auto_now_add=True)
-    is_private = models.BooleanField(default=True)
+    is_private = models.BooleanField()
 
     def get_other_user(self, current_user):
         return self.users.exclude(id=current_user.id).first().username
@@ -21,12 +21,17 @@ class Participants(models.Model):
 
 
 class PrivateChat(Participants):
-    pass
+    def save(self, *args, **kwargs):
+        self.is_private = True
+        super(PrivateChat, self).save()
 
 
 class GroupChat(Participants):
     name = models.CharField(max_length=100)
-    is_private = False
+
+    def save(self, *args, **kwargs):
+        self.is_private = False
+        super(GroupChat, self).save()
 
     def __str__(self):
         return self.name
