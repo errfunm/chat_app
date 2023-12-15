@@ -40,7 +40,7 @@ To run this Django project locally, follow these steps:
 1. **Clone the repository:**
    
    ```bash
-   git clone https://github.com/errfunm/chat_app
+   git clone https://github.com/errfunm/chat_app.git
    ```
    
 3. **Navigate to the project directory**
