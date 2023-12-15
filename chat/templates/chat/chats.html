@@ -2,12 +2,31 @@
 {% load custom_filters %}
 {% block content %}
     <ul>
-    {% for chat in chats%}
-        {% if chat.is_private %}
-            <li><a href="{% url 'chat-room-view' chat.id %}">{{ chat|get_other_user:current_user }}</a></li>
-        {% else %}
-            <li><a href="{% url 'chat-room-view' chat.id %}">{{ chat.name }}</a></li>
-        {% endif %}
-    {% endfor %}
+        {% for chat in chats%}
+            {% if chat.is_private %}
+                {% with other_user=chat|get_other_user:current_user %}
+                    <li style="background: #cfdfe6">
+                        <div style="margin: 10px">
+                            <img src="{{ other_user.profile.profile_pic.url }}" alt="profile_pic"
+                                 style="display: inline-block; overflow: hidden; width: 50px; border-radius: 50%;">
+
+                            <a href="{% url 'chat-room-view' chat.id %}">{{ other_user.username}}</a>
+                        </div>
+                    </li>
+                {% endwith %}
+
+            {% else %}
+                <li style="background: #cfdfe6">
+                    <div style="margin: 10px">
+                        <img src="{{ chat.group_pic.url }}" alt="group_pic"
+                             style="display: inline-block; overflow: hidden; width: 50px; border-radius: 50%;">
+
+                         <a href="{% url 'chat-room-view' chat.id %}">{{ chat.name }}</a>
+                    </div>
+
+
+                </li>
+            {% endif %}
+        {% endfor %}
     </ul>
 {% endblock content %}

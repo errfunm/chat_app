@@ -8,7 +8,7 @@ class Participants(models.Model):
     is_private = models.BooleanField()
 
     def get_other_user(self, current_user):
-        return self.users.exclude(id=current_user.id).first().username
+        return self.users.exclude(id=current_user.id).first()
 
     def __str__(self):
         if self.is_private:
@@ -28,6 +28,7 @@ class PrivateChat(Participants):
 
 class GroupChat(Participants):
     name = models.CharField(max_length=100)
+    group_pic = models.ImageField(upload_to="group_pic/")
 
     def save(self, *args, **kwargs):
         self.is_private = False
