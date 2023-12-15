@@ -18,7 +18,7 @@ def chat_list(request):
 
         chats = pv_chats + group_chats
     context = {"chats": chats, "current_user": current_user}
-    return render(request, 'chat/chat.html', context=context, )
+    return render(request, 'chat/chats.html', context=context, )
 
 
 @login_required()
@@ -38,7 +38,7 @@ def chat_room_view(request, pk):
             if message.content_type == 'file':
                 pass
 
-    return render(request, 'chat/messages.html', context={"id": pk, "form": form, "messages": visible_messages})
+    return render(request, 'chat/chat_room.html', context={"id": pk, "form": form, "messages": visible_messages})
 
 
 @login_required()
